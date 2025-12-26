@@ -1,0 +1,113 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(resource) {
+      return request.auth.uid == resource.data.brokerId;
+    }
+    
+    function isAdmin() {
+      return request.auth.token.role == 'admin';
+    }
+    
+    function isBroker() {
+      return request.auth.token.role in ['broker', 'admin'];
+    }
+    
+    function isCustomer() {
+      return request.auth.token.role == 'customer';
+    }
+    
+    // Users collection - all roles can manage their own profile, admin can manage all
+    match /users/{userId} {
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow read, update: if isAuthenticated() && 
+        (request.auth.uid == userId || isAdmin());
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+    
+    // Customer profiles collection
+    match /customer_profiles/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if isAuthenticated() && isBroker();
+      allow write: if isAuthenticated() && isAdmin(); // Admin can edit customer profiles
+    }
+    
+    // Clients collection - brokers manage their own, admin manages all
+    match /clients/{clientId} {
+      allow read, write: if isAuthenticated() && 
+        (isAdmin() || request.auth.uid == resource.data.brokerId);
+      allow create: if isAuthenticated() && isBroker();
+    }
+    
+    // Quotes collection - brokers manage their own, admin manages all
+    match /quotes/{quoteId} {
+      allow read, write: if isAuthenticated() && 
+        (isAdmin() || request.auth.uid == resource.data.brokerId);
+      allow create: if isAuthenticated() && isBroker();
+    }
+    
+    // Policies collection - brokers manage their own, admin manages all
+    match /policies/{policyId} {
+      allow read, write: if isAuthenticated() && 
+        (isAdmin() || request.auth.uid == resource.data.brokerId);
+      allow create: if isAuthenticated() && isBroker();
+    }
+    
+    // Tasks collection - brokers manage their own, admin manages all
+    match /tasks/{taskId} {
+      allow read, write: if isAuthenticated() && 
+        (isAdmin() || request.auth.uid == resource.data.brokerId);
+      allow create: if isAuthenticated() && isBroker();
+    }
+    
+    // Documents collection - brokers manage their own, admin manages all
+    match /documents/{documentId} {
+      allow read, write: if isAuthenticated() && 
+        (isAdmin() || request.auth.uid == resource.data.brokerId);
+      allow create: if isAuthenticated() && isBroker();
+    }
+    
+    // Reports collection - brokers manage their own, admin manages all
+    match /reports/{reportId} {
+      allow read, write: if isAuthenticated() && 
+        (isAdmin() || request.auth.uid == resource.data.brokerId);
+      allow create: if isAuthenticated() && isBroker();
+    }
+    
+    // Claims collection - brokers manage their own, admin manages all
+    match /claims/{claimId} {
+      allow read, write: if isAuthenticated() && 
+        (isAdmin() || request.auth.uid == resource.data.brokerId);
+      allow create: if isAuthenticated() && isBroker();
+    }
+    
+    // Activity logs - only admins can read, all authenticated users can create
+    match /activity_logs/{logId} {
+      allow create: if isAuthenticated();
+      allow read: if isAuthenticated() && isAdmin();
+    }
+    
+    // Authentication logs
+    match /auth_logs/{logId} {
+      allow create: if isAuthenticated();
+      allow read: if isAuthenticated() && isAdmin();
+    }
+    
+    // System settings - all authenticated users can read (needed for currency, etc.), only admins can write
+    match /system_settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isAdmin();
+    }
+    
+    // Analytics and metrics - only admins can read
+    match /analytics/{docId} {
+      allow read: if isAuthenticated() && isAdmin();
+      allow write: if isAuthenticated() && isAdmin();
+    }
+  }
+} 

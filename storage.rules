@@ -1,0 +1,77 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user has broker role
+    function isBroker() {
+      return isAuthenticated() && 
+        (request.auth.token.role == 'broker' || request.auth.token.role == 'admin');
+    }
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.role == 'admin';
+    }
+    
+    // Documents folder - requires authentication and proper permissions
+    match /documents/{clientId}/{documentId} {
+      allow read: if isAuthenticated() && isBroker() &&
+        (isAdmin() || canAccessClientDocument(clientId));
+      
+      allow write: if isAuthenticated() && isBroker() &&
+        (isAdmin() || canAccessClientDocument(clientId));
+      
+      allow delete: if isAuthenticated() && 
+        (isAdmin() || (isBroker() && canAccessClientDocument(clientId)));
+    }
+    
+    // Helper function to check client document access
+    function canAccessClientDocument(clientId) {
+      // This would ideally check Firestore, but Storage rules are limited
+      // In practice, the application logic should enforce this
+      return true; // Simplified for demo - implement proper checking
+    }
+    
+    // Profile images - users can manage their own profile images
+    match /profile_images/{userId}/{imageId} {
+      allow read, write: if isAuthenticated() && 
+        (request.auth.uid == userId || isAdmin());
+    }
+    
+    // Company logos and assets - admin only
+    match /assets/{assetType}/{assetId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Temporary files for AI processing - system only
+    match /temp/{tempId} {
+      // These should only be accessed by server-side functions
+      allow read, write: if false;
+    }
+    
+    // Reports and exports - users can access their own reports
+    match /reports/{userId}/{reportId} {
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == userId || isAdmin());
+      
+      allow write: if isAuthenticated() && isBroker() &&
+        (request.auth.uid == userId || isAdmin());
+    }
+    
+    // Backup files - admin only
+    match /backups/{backupId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Default deny for any other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+} 

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" class="h-full">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content="AI-Enabled Insurance Broker Platform - Streamline client management, quote comparison, and policy administration with intelligent automation." />
+		<meta name="keywords" content="insurance broker, AI, quotes, policies, risk assessment, client management" />
+		
+		<!-- Open Graph Meta Tags -->
+		<meta property="og:title" content="Insurance Broker Pro - AI-Enabled Platform" />
+		<meta property="og:description" content="Streamline your insurance brokerage with AI-powered tools for client management, quote comparison, and risk assessment." />
+		<meta property="og:type" content="website" />
+		<meta property="og:image" content="%sveltekit.assets%/og-image.png" />
+		
+		<!-- Twitter Card Meta Tags -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content="Insurance Broker Pro - AI-Enabled Platform" />
+		<meta name="twitter:description" content="Streamline your insurance brokerage with AI-powered tools." />
+		
+		<!-- Fonts -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+		
+		<!-- Favicon - only essential ones -->
+		<link rel="icon" href="%sveltekit.assets%/favicon.ico" />
+		
+		<!-- Theme -->
+		<meta name="theme-color" content="#1E40AF" />
+		<meta name="color-scheme" content="light dark" />
+		
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover" class="h-full bg-neutral-50 font-sans antialiased">
+		<div id="app" class="h-full">%sveltekit.body%</div>
+		
+		<!-- Loading Scripts -->
+		<script>
+			// Theme detection and application
+			(function() {
+				const theme = localStorage.getItem('theme') || 
+					(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+				document.documentElement.classList.toggle('dark', theme === 'dark');
+			})();
+		</script>
+	</body>
+</html> 
